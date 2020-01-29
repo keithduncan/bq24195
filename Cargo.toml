@@ -1,5 +1,10 @@
 [package]
 name = "bq24195"
+description = "Platform-agnostic Rust driver for the Texas Instruments BQ24195 Li-Ion/Li-Po battery charge management IC."
+repository = "https://github.com/keithduncan/bq24195"
+keywords = ["BQ24195", "embedded-hal-driver"]
+categories = ["embedded", "no-std", "hardware-support"]
+license = "MIT"
 version = "0.1.0"
 authors = ["Keith Duncan <keith_duncan@me.com>"]
 edition = "2018"
