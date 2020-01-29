@@ -218,6 +218,42 @@ impl Default for PowerOnConfiguration {
 	}
 }
 
+pub struct MiscOperationControl(u8);
+
+bitfield_bitrange! {
+	struct MiscOperationControl(u8)
+}
+
+impl MiscOperationControl {
+	bitfield_fields! {
+		pub bool, dpdm_detection, set_dpdm_detection : 7;
+		pub bool, safety_timer_slowed, set_safety_timer_slowed : 6;
+		pub bool, battery_fet_disabled, set_battery_fet_disabled : 5;
+		pub bool, charge_fault_interrupt, set_charge_fault_interrupt : 1;
+		pub bool, battery_fault_interrupt, set_battery_fault_interrupt : 0;
+	}
+}
+
+impl Debug for MiscOperationControl {
+	bitfield_debug! {
+		struct MiscOperationControl;
+		pub bool, dpdm_detection, set_dpdm_detection: 7;
+		pub bool, safety_timer_slowed, set_safety_timer_slowed: 6;
+		pub bool, battery_fet_disabled, set_battery_fet_disabled: 5;
+		pub bool, charge_fault_interrupt, set_charge_fault_interrupt: 1;
+		pub bool, battery_fault_interrupt, set_battery_fault_interrupt: 0;
+	}
+}
+
+impl Default for MiscOperationControl {
+	fn default() -> Self {
+		let mut reg = MiscOperationControl(0b00001000);
+		reg.set_charge_fault_interrupt(true);
+		reg.set_battery_fault_interrupt(true);
+		reg
+	}
+}
+
 impl<I2C, E> Bq24195<I2C>
 	where I2C: Write<Error = E> {
 	/// Create a new driver instance.
@@ -236,6 +272,10 @@ impl<I2C, E> Bq24195<I2C>
 
 	pub fn set_power_on_configuration(&mut self, power_on_configuration: PowerOnConfiguration) -> Result<(), Error<E>> {
 		self.write_register(Register::PowerOnConfiguration, power_on_configuration.0)
+	}
+
+	pub fn set_misc_operation_control(&mut self, misc_operation_control: MiscOperationControl) -> Result<(), Error<E>> {
+		self.write_register(Register::MiscOperationControl, misc_operation_control.0)
 	}
 
 	fn write_register(&mut self, register: Register, value: u8) -> Result<(), Error<E>> {
