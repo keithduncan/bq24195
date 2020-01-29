@@ -136,6 +136,88 @@ impl Default for InputSourceControl {
 	}
 }
 
+#[derive(Debug)]
+#[allow(unused)]
+#[repr(u8)]
+pub enum ChargerConfiguration {
+	ChargeDisabled = 0b00,
+	ChargeBattery = 0b01,
+	OTG = 0b10, // can also be 0b11
+}
+
+impl Into<u8> for ChargerConfiguration {
+	fn into(self) -> u8 {
+		self as u8
+	}
+}
+
+impl From<u8> for ChargerConfiguration {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b11) }
+	}
+}
+
+#[derive(Debug)]
+#[allow(unused)]
+#[repr(u8)]
+pub enum MinimumSystemVoltage {
+	V3   = 0b000,
+	V3_1 = 0b001,
+	V3_2 = 0b010,
+	V3_3 = 0b011,
+	V3_4 = 0b100,
+	V3_5 = 0b101,
+	V3_6 = 0b110,
+	V3_7 = 0b111,
+}
+
+impl Into<u8> for MinimumSystemVoltage {
+	fn into(self) -> u8 {
+		self as u8
+	}
+}
+
+impl From<u8> for MinimumSystemVoltage {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b111) }
+	}
+}
+
+pub struct PowerOnConfiguration(u8);
+
+bitfield_bitrange! {
+	struct PowerOnConfiguration(u8)
+}
+
+impl PowerOnConfiguration {
+	bitfield_fields! {
+		pub bool, register_reset, set_reset : 7;
+		pub bool, watchdog_reset, set_watchdog_reset : 6;
+		pub u8, from into ChargerConfiguration, charger_configuration, set_charger_configuration : 5, 4;
+		pub u8, from into MinimumSystemVoltage, minimum_system_voltage, set_minimum_system_voltage : 3, 1;
+	}
+}
+
+impl Debug for PowerOnConfiguration {
+	bitfield_debug! {
+		struct PowerOnConfiguration;
+		pub bool, register_reset, set_reset : 7;
+		pub bool, watchdog_reset, set_watchdog_reset : 6;
+		pub u8, from into ChargerConfiguration, charger_configuration, set_charger_configuration : 5, 4;
+		pub u8, from into MinimumSystemVoltage, minimum_system_voltage, set_minimum_system_voltage : 3, 1;
+	}
+}
+
+impl Default for PowerOnConfiguration {
+	fn default() -> Self {
+		// Always set lsb to 1
+		let mut reg = PowerOnConfiguration(0b0000_0001);
+		reg.set_charger_configuration(ChargerConfiguration::ChargeBattery);
+		reg.set_minimum_system_voltage(MinimumSystemVoltage::V3_5);
+		reg
+	}
+}
+
 impl<I2C, E> Bq24195<I2C>
 	where I2C: Write<Error = E> {
 	/// Create a new driver instance.
@@ -150,6 +232,10 @@ impl<I2C, E> Bq24195<I2C>
 
 	pub fn set_input_source_control(&mut self, input_source_control: InputSourceControl) -> Result<(), Error<E>> {
 		self.write_register(Register::InputSourceControl, input_source_control.0)
+	}
+
+	pub fn set_power_on_configuration(&mut self, power_on_configuration: PowerOnConfiguration) -> Result<(), Error<E>> {
+		self.write_register(Register::PowerOnConfiguration, power_on_configuration.0)
 	}
 
 	fn write_register(&mut self, register: Register, value: u8) -> Result<(), Error<E>> {
