@@ -11,12 +11,7 @@ use embedded_hal::blocking::i2c::{
 	WriteRead,
 };
 
-use bitfield::{
-	bitfield_bitrange,
-	bitfield_fields,
-	bitfield_debug,
-	BitRange,
-};
+use bitfield::bitfield;
 
 pub struct Bq24195<I2C> {
 	i2c: I2C,
@@ -103,27 +98,13 @@ impl From<u8> for InputCurrentLimit {
 	}
 }
 
-pub struct InputSourceControl(u8);
+bitfield! {
+	pub struct InputSourceControl(u8);
+	impl Debug;
 
-bitfield_bitrange! {
-    struct InputSourceControl(u8)
-}
-
-impl InputSourceControl {
-    bitfield_fields! {
-        pub bool, hiz,    set_hiz    : 7;
-        pub u8, from into InputVoltageLimit, input_voltage_limit, set_input_voltage_limit : 6, 3;
-        pub u8, from into InputCurrentLimit, input_current_limit, set_input_current_limit : 2, 0;
-    }
-}
-
-impl Debug for InputSourceControl {
-    bitfield_debug! {
-        struct InputSourceControl;
-        pub bool, hiz,    set_hiz    : 7;
-        pub u8, from into InputVoltageLimit, input_voltage_limit, set_input_voltage_limit : 6, 3;
-        pub u8, from into InputCurrentLimit, input_current_limit, set_input_current_limit : 2, 0;
-    }
+	pub bool, hiz,    set_hiz    : 7;
+    pub u8, from into InputVoltageLimit, input_voltage_limit, set_input_voltage_limit : 6, 3;
+    pub u8, from into InputCurrentLimit, input_current_limit, set_input_current_limit : 2, 0;
 }
 
 impl Default for InputSourceControl {
@@ -183,29 +164,14 @@ impl From<u8> for MinimumSystemVoltage {
 	}
 }
 
-pub struct PowerOnConfiguration(u8);
+bitfield! {
+	pub struct PowerOnConfiguration(u8);
+	impl Debug;
 
-bitfield_bitrange! {
-	struct PowerOnConfiguration(u8)
-}
-
-impl PowerOnConfiguration {
-	bitfield_fields! {
-		pub bool, register_reset, set_reset : 7;
-		pub bool, watchdog_reset, set_watchdog_reset : 6;
-		pub u8, from into ChargerConfiguration, charger_configuration, set_charger_configuration : 5, 4;
-		pub u8, from into MinimumSystemVoltage, minimum_system_voltage, set_minimum_system_voltage : 3, 1;
-	}
-}
-
-impl Debug for PowerOnConfiguration {
-	bitfield_debug! {
-		struct PowerOnConfiguration;
-		pub bool, register_reset, set_reset : 7;
-		pub bool, watchdog_reset, set_watchdog_reset : 6;
-		pub u8, from into ChargerConfiguration, charger_configuration, set_charger_configuration : 5, 4;
-		pub u8, from into MinimumSystemVoltage, minimum_system_voltage, set_minimum_system_voltage : 3, 1;
-	}
+	pub bool, register_reset, set_reset : 7;
+	pub bool, watchdog_reset, set_watchdog_reset : 6;
+	pub u8, from into ChargerConfiguration, charger_configuration, set_charger_configuration : 5, 4;
+	pub u8, from into MinimumSystemVoltage, minimum_system_voltage, set_minimum_system_voltage : 3, 1;
 }
 
 impl Default for PowerOnConfiguration {
@@ -218,31 +184,15 @@ impl Default for PowerOnConfiguration {
 	}
 }
 
-pub struct MiscOperationControl(u8);
+bitfield! {
+	pub struct MiscOperationControl(u8);
+	impl Debug;
 
-bitfield_bitrange! {
-	struct MiscOperationControl(u8)
-}
-
-impl MiscOperationControl {
-	bitfield_fields! {
-		pub bool, dpdm_detection, set_dpdm_detection : 7;
-		pub bool, safety_timer_slowed, set_safety_timer_slowed : 6;
-		pub bool, battery_fet_disabled, set_battery_fet_disabled : 5;
-		pub bool, charge_fault_interrupt, set_charge_fault_interrupt : 1;
-		pub bool, battery_fault_interrupt, set_battery_fault_interrupt : 0;
-	}
-}
-
-impl Debug for MiscOperationControl {
-	bitfield_debug! {
-		struct MiscOperationControl;
-		pub bool, dpdm_detection, set_dpdm_detection: 7;
-		pub bool, safety_timer_slowed, set_safety_timer_slowed: 6;
-		pub bool, battery_fet_disabled, set_battery_fet_disabled: 5;
-		pub bool, charge_fault_interrupt, set_charge_fault_interrupt: 1;
-		pub bool, battery_fault_interrupt, set_battery_fault_interrupt: 0;
-	}
+	pub bool, dpdm_detection, set_dpdm_detection : 7;
+	pub bool, safety_timer_slowed, set_safety_timer_slowed : 6;
+	pub bool, battery_fet_disabled, set_battery_fet_disabled : 5;
+	pub bool, charge_fault_interrupt, set_charge_fault_interrupt : 1;
+	pub bool, battery_fault_interrupt, set_battery_fault_interrupt : 0;
 }
 
 impl Default for MiscOperationControl {
@@ -289,6 +239,7 @@ impl<I2C, E> Bq24195<I2C>
 impl<I2C, E> Bq24195<I2C>
 	where I2C: WriteRead<Error = E> {
 
+	#[allow(unused)]
 	fn read_register(&mut self, register: Register) -> Result<u8, Error<E>> {
         let mut data = [0; 1];
         self.i2c
