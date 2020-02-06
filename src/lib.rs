@@ -21,6 +21,14 @@ pub enum Error<E> {
 	I2C(E),
 }
 
+impl<E> Debug for Error<E> where E: Debug {
+	fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+		match self {
+			Error::I2C(e) => write!(f, "Error::I2C({:?})", e),
+		}
+	}
+}
+
 const ADDRESS: u8 = 0x6B;
 
 #[allow(unused)]

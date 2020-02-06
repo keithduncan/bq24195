@@ -5,7 +5,7 @@ repository = "https://github.com/keithduncan/bq24195"
 keywords = ["BQ24195", "embedded-hal-driver"]
 categories = ["embedded", "no-std", "hardware-support"]
 license = "MIT"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Keith Duncan <keith_duncan@me.com>"]
 edition = "2018"
 
