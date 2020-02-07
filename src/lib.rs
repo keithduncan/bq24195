@@ -244,10 +244,107 @@ impl<I2C, E> Bq24195<I2C>
     }
 }
 
+#[derive(Debug)]
+#[repr(u8)]
+pub enum VbusStatus {
+	Unknown = 0b00,
+	UsbHost = 0b01,
+	Adapter = 0b10,
+	Otg     = 0b11,
+}
+
+impl From<u8> for VbusStatus {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b111) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum ChargeStatus {
+	NotCharging = 0b00,
+	PreCharge   = 0b01,
+	FastCharge  = 0b10,
+	ChargeDone  = 0b11,
+}
+
+impl From<u8> for ChargeStatus {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b11) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum DpmStatus {
+	NotDynamicPowerManagement = 0b0,
+	Vindpm = 0b1,
+}
+
+impl From<u8> for DpmStatus {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b1) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum PowerStatus {
+	NotGood = 0b0,
+	Good    = 0b1,
+}
+
+impl From<u8> for PowerStatus {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b1) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum ThermalStatus {
+	Normal    = 0b0,
+	Regulated = 0b1,
+}
+
+impl From<u8> for ThermalStatus {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b1) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum VsysStatus {
+	NotRegulated = 0b0,
+	Regulated    = 0b1,
+}
+
+impl From<u8> for VsysStatus {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b1) }
+	}
+}
+
+bitfield! {
+	pub struct SystemStatus(u8);
+	impl Debug;
+
+	pub u8, into VbusStatus, vbus_status, _ : 7, 6;
+	pub u8, into ChargeStatus, charge_status, _ : 5, 4;
+	pub u8, into DpmStatus, dpm_status, _ : 3, 3;
+	pub u8, into PowerStatus, power_status, _ : 2, 2;
+	pub u8, into ThermalStatus, thermal_status, _ : 1, 1;
+	pub u8, into VsysStatus, vsys_status, _ : 0, 0;
+}
+
 impl<I2C, E> Bq24195<I2C>
 	where I2C: WriteRead<Error = E> {
+	pub fn system_status(&mut self) -> Result<SystemStatus, Error<E>> {
+		let val = self.read_register(Register::SystemStatus)?;
+		Ok(SystemStatus(val))
+	}
 
-	#[allow(unused)]
 	fn read_register(&mut self, register: Register) -> Result<u8, Error<E>> {
         let mut data = [0; 1];
         self.i2c
