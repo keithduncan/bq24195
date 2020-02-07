@@ -338,11 +338,87 @@ bitfield! {
 	pub u8, into VsysStatus, vsys_status, _ : 0, 0;
 }
 
+#[derive(Debug)]
+#[repr(u8)]
+pub enum Watchdog {
+	Normal  = 0b0,
+	Expired = 0b1,
+}
+
+impl From<u8> for Watchdog {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b1) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum ChargeFault {
+	Normal             = 0b00,
+	InputFault         = 0b01,
+	ThermalShutdown    = 0b10,
+	SafetyTimerExpired = 0b11,
+}
+
+impl From<u8> for ChargeFault {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b11) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum BatteryFault {
+	Normal               = 0b0,
+	OverVoltageThreshold = 0b1,
+}
+
+impl From<u8> for BatteryFault {
+	fn from(val: u8) -> Self {
+		unsafe { mem::transmute(val & 0b1) }
+	}
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum ThermistorFault {
+	Normal,
+	Cold,
+	Hot,
+	Unknown,
+}
+
+impl From<u8> for ThermistorFault {
+	fn from(val: u8) -> Self {
+		match val & 0b111 {
+			0b000 => ThermistorFault::Normal,
+			0b101 => ThermistorFault::Cold,
+			0b110 => ThermistorFault::Hot,
+			_     => ThermistorFault::Unknown,
+		}
+	}
+}
+
+bitfield! {
+	pub struct Fault(u8);
+	impl Debug;
+
+	pub u8, into Watchdog, watchdog, _ : 7, 7;
+	pub u8, into ChargeFault, charge_fault, _ : 5, 4;
+	pub u8, into BatteryFault, battery_fault, _ : 3, 3;
+	pub u8, into ThermistorFault, thermistor_fault, _ : 2, 0;
+}
+
 impl<I2C, E> Bq24195<I2C>
 	where I2C: WriteRead<Error = E> {
 	pub fn system_status(&mut self) -> Result<SystemStatus, Error<E>> {
 		let val = self.read_register(Register::SystemStatus)?;
 		Ok(SystemStatus(val))
+	}
+
+	pub fn fault(&mut self) -> Result<Fault, Error<E>> {
+		let val = self.read_register(Register::Fault)?;
+		Ok(Fault(val))
 	}
 
 	fn read_register(&mut self, register: Register) -> Result<u8, Error<E>> {
