@@ -111,8 +111,8 @@ bitfield! {
 	impl Debug;
 
 	pub bool, hiz,    set_hiz    : 7;
-    pub u8, from into InputVoltageLimit, input_voltage_limit, set_input_voltage_limit : 6, 3;
-    pub u8, from into InputCurrentLimit, input_current_limit, set_input_current_limit : 2, 0;
+	pub u8, from into InputVoltageLimit, input_voltage_limit, set_input_voltage_limit : 6, 3;
+	pub u8, from into InputCurrentLimit, input_current_limit, set_input_current_limit : 2, 0;
 }
 
 impl Default for InputSourceControl {
